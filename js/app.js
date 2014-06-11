@@ -48,8 +48,6 @@ require(['$api/models', '$api/models#Session'], function(models) {
 
     function updateStatus(track)
     {
-        var debug = $('.js-debug').prop('checked');
-
         if ( ! webhookToken || ! webhookSubdomain)
             return;
 
