@@ -44,6 +44,8 @@ require(['$api/models', '$api/models#Session'], function(models) {
 
     function updateStatus(track)
     {
+        var debug = $('.js-debug').prop('checked');
+
         if ( ! webhookToken || ! webhookSubdomain)
             return;
 
@@ -58,12 +60,19 @@ require(['$api/models', '$api/models#Session'], function(models) {
                     username : currentUser.name
                 };
 
-                $.post(
-                    'https://' + webhookSubdomain + '.' + webhookUri + webhookToken,
-                    JSON.stringify(payload),
-                    null,
-                    'json'
-                );
+                if (debug)
+                {
+                    console.log(payload);
+                }
+                else
+                {
+                    $.post(
+                        'https://' + webhookSubdomain + '.' + webhookUri + webhookToken,
+                        JSON.stringify(payload),
+                        null,
+                        'json'
+                    );
+                }
             }
         }
         else
@@ -74,18 +83,24 @@ require(['$api/models', '$api/models#Session'], function(models) {
 
     // update on load
     models.player.load('track').done(
-        function(p)
+        function(event)
         {
-            updateStatus(p.track);
+            if (event.playing)
+            {
+                updateStatus(event.track);
+            }
         }
     );
 
     // update on change
     models.player.addEventListener(
         'change',
-        _.debounce(function(p)
+        function(event)
         {
-            updateStatus(p.data.track);
-        }, 10)
+            if (event.data.playing && event.data.position === 0)
+            {
+                updateStatus(event.data.track);
+            }
+        }
     );
 });
