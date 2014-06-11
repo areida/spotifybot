@@ -3,6 +3,7 @@ require(['$api/models', '$api/models#Session'], function(models) {
     var currentUser, nowPlaying, webhookSubdomain, webhookToken, webhookUri;
 
     currentUser      = {};
+    debug            = $.jStorage.get('debug');
     webhookSubdomain = $.jStorage.get('spotifybot-webook-subdomain');
     webhookToken     = $.jStorage.get('spotifybot-webook-token');
     webhookUri       = 'slack.com/services/hooks/incoming-webhook?token=';
@@ -26,18 +27,21 @@ require(['$api/models', '$api/models#Session'], function(models) {
 
     function updateWebhook()
     {
-        var subdomain, token;
+        var debug, subdomain, token;
 
+        debug     = $('.js-debug').prop('checked');
         subdomain = $('.js-webhook-subdomain').val();
         token     = $('.js-webhook-token').val();
 
         webhookSubdomain = subdomain;
         webhookToken     = token;
 
+        $.jStorage.set('debug', debug);
         $.jStorage.set('spotifybot-webook-subdomain', subdomain);
         $.jStorage.set('spotifybot-webook-token', token);
     };
 
+    $('.js-debug').prop('checked', debug);
     $('.js-webhook-subdomain').val(webhookSubdomain);
     $('.js-webhook-token').val(webhookToken);
     $('.js-save').on('click', updateWebhook);
