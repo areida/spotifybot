@@ -7,4 +7,4 @@
 1. Open Spotify and type `spotify:app:spotifybot` in the Search box
 1. Enter your slack subdomain and api token
 1. Add Spotifybot to your favorites
-1. Keeps Spotifybot open to send your current song to Slack
+1. Keep Spotifybot open to send your current song to Slack
