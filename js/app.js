@@ -4,7 +4,8 @@ require(['$api/models', '$api/models#Session'], function(models) {
 
     currentUser      = {};
     debug            = $.jStorage.get('debug');
-    iconEmoji        = $.jStorage.get('spotify-webhook-icon-emoji');
+    postName         = $.jStorage.get('spotifybot-webook-post-name');
+    iconEmoji        = $.jStorage.get('spotifybot-webook-icon-emoji');
     webhookSubdomain = $.jStorage.get('spotifybot-webook-subdomain');
     webhookToken     = $.jStorage.get('spotifybot-webook-token');
     webhookUri       = 'slack.com/services/hooks/incoming-webhook?token=';
@@ -20,7 +21,11 @@ require(['$api/models', '$api/models#Session'], function(models) {
             sess.user.load('name', 'username', 'subscribed').done(
                 function(user)
                 {
-                    currentUser.name = user.name;
+                    if ( ! postName)
+                    {
+                        postName = user.name;
+                        $('.js-webhook-post-name').val(postName);
+                    }
                 }
             );
         }
@@ -33,9 +38,10 @@ require(['$api/models', '$api/models#Session'], function(models) {
 
     function updateWebhook()
     {
-        var debug, subdomain, token;
+        var debug, name, subdomain, token;
 
         debug     = $('.js-debug').prop('checked');
+        name      = $('.js-webhook-post-name').val();
         iconName  = $('.js-webhook-icon-emoji').val();
         subdomain = $('.js-webhook-subdomain').val();
         token     = $('.js-webhook-token').val();
@@ -44,12 +50,14 @@ require(['$api/models', '$api/models#Session'], function(models) {
         webhookToken     = token;
 
         $.jStorage.set('debug', debug);
+        $.jStorage.set('spotifybot-webook-post-name', name);
         $.jStorage.set('spotifybot-webook-icon-emoji', iconName);
         $.jStorage.set('spotifybot-webook-subdomain', subdomain);
         $.jStorage.set('spotifybot-webook-token', token);
     };
 
     $('.js-debug').prop('checked', debug);
+    $('.js-webhook-post-name').val(postName);
     $('.js-webhook-icon-emoji').val(iconEmoji);
     $('.js-webhook-subdomain').val(webhookSubdomain);
     $('.js-webhook-token').val(webhookToken);
@@ -60,7 +68,7 @@ require(['$api/models', '$api/models#Session'], function(models) {
         if ( ! webhookToken || ! webhookSubdomain)
             return;
 
-        if (currentUser.name)
+        if (postName)
         {
             if (track !== null)
             {
@@ -69,7 +77,7 @@ require(['$api/models', '$api/models#Session'], function(models) {
                 var payload = {
                     icon_emoji : iconEmoji,
                     text       : linkify(artist.uri, artist.name) + ' - ' + linkify(track.uri, track.name),
-                    username   : currentUser.name
+                    username   : postName
                 };
 
                 if (debug)
