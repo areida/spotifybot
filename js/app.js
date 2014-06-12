@@ -1,12 +1,18 @@
 require(['$api/models', '$api/models#Session'], function(models) {
 
-    var currentUser, nowPlaying, webhookSubdomain, webhookToken, webhookUri;
+    var currentUser, debug, iconEmoji, nowPlaying, webhookSubdomain, webhookToken, webhookUri;
 
     currentUser      = {};
     debug            = $.jStorage.get('debug');
+    iconEmoji        = $.jStorage.get('spotify-webhook-icon-emoji');
     webhookSubdomain = $.jStorage.get('spotifybot-webook-subdomain');
     webhookToken     = $.jStorage.get('spotifybot-webook-token');
     webhookUri       = 'slack.com/services/hooks/incoming-webhook?token=';
+
+    if ( ! iconEmoji)
+    {
+        iconEmoji = ':hex:';
+    }
 
     models.session.load('product','connection','device','user').done(
         function(sess)
@@ -30,6 +36,7 @@ require(['$api/models', '$api/models#Session'], function(models) {
         var debug, subdomain, token;
 
         debug     = $('.js-debug').prop('checked');
+        iconName  = $('.js-webhook-icon-emoji').val();
         subdomain = $('.js-webhook-subdomain').val();
         token     = $('.js-webhook-token').val();
 
@@ -37,11 +44,13 @@ require(['$api/models', '$api/models#Session'], function(models) {
         webhookToken     = token;
 
         $.jStorage.set('debug', debug);
+        $.jStorage.set('spotifybot-webook-icon-emoji', iconName);
         $.jStorage.set('spotifybot-webook-subdomain', subdomain);
         $.jStorage.set('spotifybot-webook-token', token);
     };
 
     $('.js-debug').prop('checked', debug);
+    $('.js-webhook-icon-emoji').val(iconEmoji);
     $('.js-webhook-subdomain').val(webhookSubdomain);
     $('.js-webhook-token').val(webhookToken);
     $('.js-save').on('click', updateWebhook);
@@ -58,8 +67,9 @@ require(['$api/models', '$api/models#Session'], function(models) {
                 var artist = track.artists[0];
 
                 var payload = {
-                    text     : linkify(artist.uri, artist.name) + ' - ' + linkify(track.uri, track.name),
-                    username : currentUser.name
+                    icon_emoji : iconEmoji,
+                    text       : linkify(artist.uri, artist.name) + ' - ' + linkify(track.uri, track.name),
+                    username   : currentUser.name
                 };
 
                 if (debug)
