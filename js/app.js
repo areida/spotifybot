@@ -21,11 +21,7 @@ require(['$api/models', '$api/models#Session'], function(models) {
             sess.user.load('name', 'username', 'subscribed').done(
                 function(user)
                 {
-                    if ( ! postName)
-                    {
-                        postName = user.name;
-                        $('.js-webhook-post-name').val(postName);
-                    }
+                    currentUser.name = user.name;
                 }
             );
         }
@@ -68,7 +64,7 @@ require(['$api/models', '$api/models#Session'], function(models) {
         if ( ! webhookToken || ! webhookSubdomain)
             return;
 
-        if (postName)
+        if (currentUser.name)
         {
             if (track !== null)
             {
@@ -77,7 +73,7 @@ require(['$api/models', '$api/models#Session'], function(models) {
                 var payload = {
                     icon_emoji : iconEmoji,
                     text       : linkify(artist.uri, artist.name) + ' - ' + linkify(track.uri, track.name),
-                    username   : postName
+                    username   : currentUser.name
                 };
 
                 if (debug)
