@@ -4,7 +4,6 @@ require(['$api/models', '$api/models#Session'], function(models) {
 
     currentUser      = {};
     debug            = $.jStorage.get('debug');
-    postName         = $.jStorage.get('spotifybot-webook-post-name');
     iconEmoji        = $.jStorage.get('spotifybot-webook-icon-emoji');
     webhookSubdomain = $.jStorage.get('spotifybot-webook-subdomain');
     webhookToken     = $.jStorage.get('spotifybot-webook-token');
@@ -37,7 +36,6 @@ require(['$api/models', '$api/models#Session'], function(models) {
         var debug, name, subdomain, token;
 
         debug     = $('.js-debug').prop('checked');
-        name      = $('.js-webhook-post-name').val();
         iconName  = $('.js-webhook-icon-emoji').val();
         subdomain = $('.js-webhook-subdomain').val();
         token     = $('.js-webhook-token').val();
@@ -46,14 +44,12 @@ require(['$api/models', '$api/models#Session'], function(models) {
         webhookToken     = token;
 
         $.jStorage.set('debug', debug);
-        $.jStorage.set('spotifybot-webook-post-name', name);
         $.jStorage.set('spotifybot-webook-icon-emoji', iconName);
         $.jStorage.set('spotifybot-webook-subdomain', subdomain);
         $.jStorage.set('spotifybot-webook-token', token);
     };
 
     $('.js-debug').prop('checked', debug);
-    $('.js-webhook-post-name').val(postName);
     $('.js-webhook-icon-emoji').val(iconEmoji);
     $('.js-webhook-subdomain').val(webhookSubdomain);
     $('.js-webhook-token').val(webhookToken);
