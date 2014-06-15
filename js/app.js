@@ -89,7 +89,7 @@ require(['$api/models', '$api/models#Session'], function(models) {
         }
         else
         {
-            _.delay(updateStatus, 10, track);
+            setTimeout(updateStatus, 10000, [track]);
         }
     };
 
