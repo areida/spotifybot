@@ -4,9 +4,9 @@ require(['$api/models', '$api/models#Session'], function(models) {
 
     currentUser      = {};
     debug            = $.jStorage.get('debug');
-    iconEmoji        = $.jStorage.get('spotifybot-webook-icon-emoji');
-    webhookSubdomain = $.jStorage.get('spotifybot-webook-subdomain');
-    webhookToken     = $.jStorage.get('spotifybot-webook-token');
+    iconEmoji        = $.jStorage.get('spotifybot-webhook-icon-emoji');
+    webhookSubdomain = $.jStorage.get('spotifybot-webhook-subdomain');
+    webhookToken     = $.jStorage.get('spotifybot-webhook-token');
     webhookUri       = 'slack.com/services/hooks/incoming-webhook?token=';
 
     if ( ! iconEmoji)
@@ -44,9 +44,9 @@ require(['$api/models', '$api/models#Session'], function(models) {
         webhookToken     = token;
 
         $.jStorage.set('debug', debug);
-        $.jStorage.set('spotifybot-webook-icon-emoji', iconName);
-        $.jStorage.set('spotifybot-webook-subdomain', subdomain);
-        $.jStorage.set('spotifybot-webook-token', token);
+        $.jStorage.set('spotifybot-webhook-icon-emoji', iconName);
+        $.jStorage.set('spotifybot-webhook-subdomain', subdomain);
+        $.jStorage.set('spotifybot-webhook-token', token);
     };
 
     $('.js-debug').prop('checked', debug);
