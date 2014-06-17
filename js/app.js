@@ -1,30 +1,13 @@
 require(['$api/models', '$api/models#Session'], function(models) {
 
-    var currentUser, debug, iconEmoji, nowPlaying, webhookSubdomain, webhookToken, webhookUri;
+    var currentUser      = {},
+        iconEmoji        = $.jStorage.get('spotifybot-webhook-icon-emoji'),
+        nowPlaying       = $.jStorage.get('spotifybot-now-playing'),
+        webhookSubdomain = $.jStorage.get('spotifybot-webhook-subdomain'),
+        webhookToken     = $.jStorage.get('spotifybot-webhook-token'),
+        webhookUri       = 'slack.com/services/hooks/incoming-webhook?token=';
 
-    currentUser      = {};
-    debug            = $.jStorage.get('debug');
-    iconEmoji        = $.jStorage.get('spotifybot-webhook-icon-emoji');
-    webhookSubdomain = $.jStorage.get('spotifybot-webhook-subdomain');
-    webhookToken     = $.jStorage.get('spotifybot-webhook-token');
-    webhookUri       = 'slack.com/services/hooks/incoming-webhook?token=';
-
-    if ( ! iconEmoji)
-    {
-        iconEmoji = ':hex:';
-    }
-
-    models.session.load('product','connection','device','user').done(
-        function(sess)
-        {
-            sess.user.load('name', 'username', 'subscribed').done(
-                function(user)
-                {
-                    currentUser.name = user.name;
-                }
-            );
-        }
-    );
+    window.DEBUG_SPOTIFYBOT = false;
 
     function linkify(uri, text)
     {
@@ -33,9 +16,8 @@ require(['$api/models', '$api/models#Session'], function(models) {
 
     function updateWebhook()
     {
-        var debug, name, subdomain, token;
+        var name, subdomain, token;
 
-        debug     = $('.js-debug').prop('checked');
         iconName  = $('.js-webhook-icon-emoji').val();
         subdomain = $('.js-webhook-subdomain').val();
         token     = $('.js-webhook-token').val();
@@ -43,13 +25,11 @@ require(['$api/models', '$api/models#Session'], function(models) {
         webhookSubdomain = subdomain;
         webhookToken     = token;
 
-        $.jStorage.set('debug', debug);
         $.jStorage.set('spotifybot-webhook-icon-emoji', iconName);
         $.jStorage.set('spotifybot-webhook-subdomain', subdomain);
         $.jStorage.set('spotifybot-webhook-token', token);
     };
 
-    $('.js-debug').prop('checked', debug);
     $('.js-webhook-icon-emoji').val(iconEmoji);
     $('.js-webhook-subdomain').val(webhookSubdomain);
     $('.js-webhook-token').val(webhookToken);
@@ -58,61 +38,80 @@ require(['$api/models', '$api/models#Session'], function(models) {
     function updateStatus(track)
     {
         if ( ! webhookToken || ! webhookSubdomain)
+        {
+            if ( ! webhookToken)
+            {
+                console.log('Missing webhookToken');
+            }
+
+            if ( ! webhookToken)
+            {
+                console.log('Missing webhookToken');
+            }
+
+            return;
+        }
+
+        if (nowPlaying && track.uri === nowPlaying.uri)
             return;
 
-        if (currentUser.name)
-        {
-            if (track !== null)
-            {
-                var artist = track.artists[0];
+        nowPlaying = track;
+        $.jStorage.set('spotifybot-now-playing', track);
 
-                var payload = {
-                    icon_emoji : iconEmoji,
-                    text       : linkify(artist.uri, artist.name) + ' - ' + linkify(track.uri, track.name),
-                    username   : currentUser.name
-                };
+        var artist = track.artists[0];
 
-                if (debug)
-                {
-                    console.log(payload);
-                }
-                else
-                {
-                    $.post(
-                        'https://' + webhookSubdomain + '.' + webhookUri + webhookToken,
-                        JSON.stringify(payload),
-                        null,
-                        'json'
-                    );
-                }
-            }
-        }
-        else
+        var payload = {
+            icon_emoji : iconEmoji,
+            text       : linkify(artist.uri, artist.name) + ' - ' + linkify(track.uri, track.name),
+            username   : currentUser.name
+        };
+
+        $.post(
+            'https://' + webhookSubdomain + '.' + webhookUri + webhookToken,
+            JSON.stringify(payload),
+            null,
+            'json'
+        );
+
+        if (window.DEBUG_SPOTIFYBOT)
         {
-            setTimeout(updateStatus, 10000, [track]);
+            console.log(payload);
         }
     };
 
-    // update on load
-    models.player.load('track').done(
-        function(event)
+    // Get the current user
+    models.session.load('product','connection','device','user').done(
+        function(sess)
         {
-            if (event.playing)
-            {
-                updateStatus(event.track);
-            }
-        }
-    );
+            sess.user.load('name', 'username', 'subscribed').done(
+                function(user)
+                {
+                    currentUser.name = user.name;
 
-    // update on change
-    models.player.addEventListener(
-        'change',
-        function(event)
-        {
-            if (event.data.playing && event.data.position === 0)
-            {
-                updateStatus(event.data.track);
-            }
+                    // Update current song
+                    models.player.load('track').done(
+                        function(event)
+                        {
+                            if (event.playing && event.track)
+                            {
+                                updateStatus(event.track);
+                            }
+                        }
+                    );
+
+                    // Update on change
+                    models.player.addEventListener(
+                        'change',
+                        function(event)
+                        {
+                            if (event.data.playing && event.data.position === 0 && event.data.track)
+                            {
+                                updateStatus(event.data.track);
+                            }
+                        }
+                    );
+                }
+            );
         }
     );
 });
