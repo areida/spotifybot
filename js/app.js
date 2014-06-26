@@ -1,13 +1,22 @@
 require(['$api/models', '$api/models#Session'], function(models) {
 
-    var currentUser      = {},
-        iconEmoji        = $.jStorage.get('spotifybot-webhook-icon-emoji'),
-        nowPlaying       = $.jStorage.get('spotifybot-now-playing'),
-        webhookSubdomain = $.jStorage.get('spotifybot-webhook-subdomain'),
-        webhookToken     = $.jStorage.get('spotifybot-webhook-token'),
-        webhookUri       = 'slack.com/services/hooks/incoming-webhook?token=';
+    window.DEBUG_PAYLOAD = false;
+    window.PREVENT_SEND  = false;
 
-    window.DEBUG_SPOTIFYBOT = false;
+    var WEBHOOK_URI = 'slack.com/services/hooks/incoming-webhook?token=';
+
+    var app = {
+            emoji     : $.jStorage.get('spotifybot-webhook-icon-emoji'),
+            user      : {},
+            subdomain : $.jStorage.get('spotifybot-webhook-subdomain'),
+            token     : $.jStorage.get('spotifybot-webhook-token'),
+            track     : $.jStorage.get('spotifybot-now-playing')
+        };
+
+    function webhookUrl()
+    {
+        return 'https://' + app.subdomain + '.' + WEBHOOK_URI + app.token;
+    };
 
     function linkify(uri, text)
     {
@@ -16,68 +25,78 @@ require(['$api/models', '$api/models#Session'], function(models) {
 
     function updateWebhook()
     {
-        var name, subdomain, token;
+        var emoji     = $('.js-webhook-emoji').val(),
+            subdomain = $('.js-webhook-subdomain').val(),
+            token     = $('.js-webhook-token').val();
 
-        iconName  = $('.js-webhook-icon-emoji').val();
-        subdomain = $('.js-webhook-subdomain').val();
-        token     = $('.js-webhook-token').val();
+        app.emoji     = emoji;
+        app.subdomain = subdomain;
+        app.token     = token;
 
-        webhookSubdomain = subdomain;
-        webhookToken     = token;
-
-        $.jStorage.set('spotifybot-webhook-icon-emoji', iconName);
+        $.jStorage.set('spotifybot-webhook-icon-emoji', emoji);
         $.jStorage.set('spotifybot-webhook-subdomain', subdomain);
         $.jStorage.set('spotifybot-webhook-token', token);
-    };
 
-    $('.js-webhook-icon-emoji').val(iconEmoji);
-    $('.js-webhook-subdomain').val(webhookSubdomain);
-    $('.js-webhook-token').val(webhookToken);
-    $('.js-save').on('click', updateWebhook);
+        $('.js-notifications').text('Options saved.');
+
+        setTimeout(function() {
+           $('.js-notifications').text('');
+        }, 750);
+    };
 
     function updateStatus(track)
     {
-        if ( ! webhookToken || ! webhookSubdomain)
-        {
-            if ( ! webhookToken)
-            {
-                console.log('Missing webhookToken');
-            }
+        var artist, payload;
 
-            if ( ! webhookToken)
-            {
-                console.log('Missing webhookToken');
-            }
+        if ( ! app.subdomain)
+        {
+            console.log('Missing webhook subdomain');
 
             return;
         }
 
-        if (nowPlaying && track.uri === nowPlaying.uri)
-            return;
-
-        nowPlaying = track;
-        $.jStorage.set('spotifybot-now-playing', track);
-
-        var artist = track.artists[0];
-
-        var payload = {
-            icon_emoji : iconEmoji,
-            text       : linkify(artist.uri, artist.name) + ' - ' + linkify(track.uri, track.name),
-            username   : currentUser.name
-        };
-
-        $.post(
-            'https://' + webhookSubdomain + '.' + webhookUri + webhookToken,
-            JSON.stringify(payload),
-            null,
-            'json'
-        );
-
-        if (window.DEBUG_SPOTIFYBOT)
+        if ( ! app.token)
         {
-            console.log(payload);
+            console.log('Missing webhook token');
+
+            return;
+        }
+
+        // Track has changed
+        if ( ! app.track || track.uri !== app.track.uri)
+        {
+            app.track = track;
+            $.jStorage.set('spotifybot-now-playing', track);
+
+            artist  = track.artists[0];
+            payload = {
+                icon_emoji : app.emoji,
+                text       : linkify(artist.uri, artist.name) + ' - ' + linkify(track.uri, track.name),
+                username   : app.user.name
+            };
+
+            if ( ! window.PREVENT_SEND)
+            {
+                $.post(
+                    webhookUrl(),
+                    JSON.stringify(payload),
+                    null,
+                    'json'
+                );
+            }
+
+            if (window.DEBUG_PAYLOAD)
+            {
+                console.log(payload);
+            }
         }
     };
+
+    // Initialize the settings inputs
+    $('.js-webhook-emoji').val(app.emoji);
+    $('.js-webhook-subdomain').val(app.subdomain);
+    $('.js-webhook-token').val(app.token);
+    $('.js-save').on('click', updateWebhook);
 
     // Get the current user
     models.session.load('product','connection','device','user').done(
@@ -86,7 +105,7 @@ require(['$api/models', '$api/models#Session'], function(models) {
             sess.user.load('name', 'username', 'subscribed').done(
                 function(user)
                 {
-                    currentUser.name = user.name;
+                    app.user = user;
 
                     // Update current song
                     models.player.load('track').done(
