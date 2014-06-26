@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html>
-    <head></head>
+    <head>
+        <title>Spotifybot</title>
+        <link rel="stylesheet" type="text/css" href="/css/app.css" />
+    </head>
     <body>
         <div id="wrapper">
             <div id="index" class="section">
                 <h1>Spotifybot</h1>
+                <p>Post the current song and artist to a Slack channel.</p>
                 <label>Slack Webhook Subdomain</label>
                 <input type="text" class="js-webhook-subdomain" /><br />
                 <label>Slack Webhook Token</label>
                 <input type="text" class="js-webhook-token" /><br />
                 <label>Slack Icon Emoji</label>
-                <input type="text" class="js-webhook-icon-emoji" value=":hex:" /><br />
+                <input type="text" class="js-webhook-emoji" value=":hex:" /><br />
+                <div class="js-notifications"></div>
                 <button class="js-save">Save</button><br />
             </div>
         </div>
