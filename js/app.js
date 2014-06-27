@@ -3,6 +3,7 @@ require(['$api/models', '$api/models#Session'], function(models) {
     window.DEBUG_PAYLOAD = false;
     window.PREVENT_SEND  = false;
 
+    var SPOTIFY_URI = 'http://open.spotify.com/track/';
     var WEBHOOK_URI = 'slack.com/services/hooks/incoming-webhook?token=';
 
     var app = {
@@ -20,6 +21,14 @@ require(['$api/models', '$api/models#Session'], function(models) {
 
     function linkify(uri, text)
     {
+        var parts = uri.split(':');
+
+        // Only use HTML links for the song name
+        if (parts.length === 3 && parts[1] == 'track')
+        {
+            uri = SPOTIFY_URI + parts[2];
+        }
+
         return '<' + uri + '|' + text + '>';
     };
 
