@@ -1,7 +1,8 @@
 require(['$api/models', '$api/models#Session'], function(models) {
 
-    window.DEBUG_PAYLOAD = false;
-    window.PREVENT_SEND  = false;
+    window.DEBUG_PAYLOAD  = false;
+    window.PREVENT_SEND   = false;
+    window.POST_ALBUM_ART = false;
 
     var SPOTIFY_URI = 'http://open.spotify.com/track/';
     var WEBHOOK_URI = 'slack.com/services/hooks/incoming-webhook?token=';
@@ -24,7 +25,7 @@ require(['$api/models', '$api/models#Session'], function(models) {
         var parts = uri.split(':');
 
         // Only use HTML links for the song name
-        if (parts.length === 3 && parts[1] == 'track')
+        if (parts.length === 3 && parts[1] == 'track' && window.POST_ALBUM_ART)
         {
             uri = SPOTIFY_URI + parts[2];
         }
